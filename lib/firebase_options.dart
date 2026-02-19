@@ -71,4 +71,5 @@ class DefaultFirebaseOptions {
     authDomain: 'linea-d4f72.firebaseapp.com',
     storageBucket: 'linea-d4f72.firebasestorage.app',
   );
+
 }

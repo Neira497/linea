@@ -1,7 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:linea/data/user_data.dart';
+import 'package:linea/model/user_model.dart';
 import 'package:linea/widgets/drop_down_field.dart';
 import 'package:linea/widgets/input_field.dart';
+import 'package:linea/widgets/mostrar_mensaje.dart';
 
 class SignUpPage extends StatefulWidget {
   final Function changeToSignIn;
@@ -16,6 +19,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final formKey = GlobalKey<FormState>();
   final TextEditingController correo = TextEditingController();
   final TextEditingController contrasena = TextEditingController();
+  final TextEditingController nombre = TextEditingController();
   final TextEditingController confirmarContrasena = TextEditingController();
   final UserData userData = UserData(); // Usuario
   bool procesando = false;
@@ -40,65 +44,66 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   // Metodo para registrar a un usuario
-  // void _signUp() async {
-  //   setState(() {
-  //     procesando = true;
-  //   });
-  //   if (formKey.currentState!.validate()) {
-  //     final userModel = UserModel(
-  //       email: correo.text.trim(),
-  //       password: contrasena.text.trim(),
-  //     );
+  void _signUp() async {
+    setState(() {
+      procesando = true;
+    });
+    if (formKey.currentState!.validate()) {
+      final userModel = UserModel(
+        correo: correo.text.trim(),
+        contrasena: contrasena.text.trim(),
+      );
 
-  //     try {
-  //       await userData.registerUser(userModel);
+      try {
+        await userData.registerUser(userModel);
 
-  //       // Vaciar los inputs
-  //       _vaciarInputs();
-  //       setState(() {
-  //         procesando = false;
-  //       });
-  //       if (mounted) {
-  //         mostrarMensajeCorrecto(
-  //             context,
-  //             "¡Registrado!",
-  //             "Cuenta registrada con exito",
-  //             widget.changeToSignIn,
-  //             widget.changeToSignIn);
-  //       }
-  //     } catch (e) {
-  //       setState(() {
-  //         procesando = false;
-  //       });
-  //       if (e is FirebaseAuthException) {
-  //         if (e.code == 'email-already-in-use') {
-  //           // Error específico de correo ya en uso
-  //           if (mounted) {
-  //             mostrarMensajeError(context, "Error", "El correo ya esta en uso");
-  //           }
-  //         } else {
-  //           // Otro tipo de error
-  //           if (mounted) {
-  //             mostrarMensajeError(context, "Error", "Error al registrarse");
-  //           }
-  //         }
-  //       } else {
-  //         // Si el error no es un FirebaseAuthException
-  //         if (mounted) {
-  //           mostrarMensajeError(context, "Error", "Error al registrarse");
-  //         }
-  //       }
-  //     } finally {
-  //       setState(() {
-  //         procesando = false;
-  //       });
-  //     }
-  //   } else {
-  //     setState(() {
-  //       procesando = false;
-  //     });
-  //   }
-  // }
+        // Vaciar los inputs
+        _vaciarInputs();
+        setState(() {
+          procesando = false;
+        });
+        if (mounted) {
+          mostrarMensajeCorrecto(
+            context,
+            "¡Registrado!",
+            "Cuenta registrada con exito",
+            widget.changeToSignIn,
+            widget.changeToSignIn,
+          );
+        }
+      } catch (e) {
+        setState(() {
+          procesando = false;
+        });
+        if (e is FirebaseAuthException) {
+          if (e.code == 'email-already-in-use') {
+            // Error específico de correo ya en uso
+            if (mounted) {
+              mostrarMensajeError(context, "Error", "El correo ya esta en uso");
+            }
+          } else {
+            // Otro tipo de error
+            if (mounted) {
+              mostrarMensajeError(context, "Error", "Error al registrarse");
+            }
+          }
+        } else {
+          // Si el error no es un FirebaseAuthException
+          if (mounted) {
+            mostrarMensajeError(context, "Error", "Error al registrarse");
+          }
+        }
+      } finally {
+        setState(() {
+          procesando = false;
+        });
+      }
+    } else {
+      setState(() {
+        procesando = false;
+      });
+    }
+  }
 
   void _vaciarInputs() {
     correo.clear();
@@ -106,22 +111,30 @@ class _SignUpPageState extends State<SignUpPage> {
     confirmarContrasena.clear();
   }
 
-  // Metodo para verificar el correo
   String? _handleCorreo(String value) {
-    // El correo esta vacio
     if (value.isEmpty) {
       return "Ingrese el correo electrónico";
     }
 
-    // Expresión regular para validar el formato de un correo electrónico
-    final emailRegex = RegExp(
-      r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-    );
-    if (!emailRegex.hasMatch(value)) {
+    final Pattern emailRegex =
+        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+
+    // ignore: deprecated_member_use
+    if (!RegExp(emailRegex.toString()).hasMatch(value)) {
       return "Ingrese un correo electrónico válido";
     }
 
-    return null; // El correo es válido
+    return null;
+  }
+
+  // Metodo para verificar la primer contraseña
+  String? _handleNombre(String value) {
+    // La contraseña esta vacio
+    if (value.isEmpty) {
+      return "Ingrese su nombre";
+    }
+
+    return null; // La contraseña es válido
   }
 
   // Metodo para verificar la primer contraseña
@@ -155,6 +168,16 @@ class _SignUpPageState extends State<SignUpPage> {
       key: formKey,
       child: Column(
         children: [
+          // Correo electronico
+          InputField(
+            controller: nombre,
+            validator: (value) => _handleNombre(value!),
+            label: "Nombre",
+            keyboardType: TextInputType.text,
+            obscureText: false,
+          ),
+          SizedBox(height: 20),
+
           // Correo electronico
           InputField(
             controller: correo,
@@ -204,8 +227,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
           // Boton
           ElevatedButton(
-            // onPressed: _signUp,
-            onPressed: null,
+            onPressed: _signUp,
             style: ButtonStyle(
               backgroundColor: WidgetStatePropertyAll(Colors.brown[100]),
             ),
