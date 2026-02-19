@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "219553067194",
+    "project_id": "linea-d4f72",
+    "storage_bucket": "linea-d4f72.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:219553067194:android:e6d33d4cb86f67c9d91283",
+        "android_client_info": {
+          "package_name": "com.example.linea"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyvDl-dST7MKluGJQZ3n1lcwIg3jFGbxM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
