@@ -52,6 +52,8 @@ class _SignUpPageState extends State<SignUpPage> {
       final userModel = UserModel(
         correo: correo.text.trim(),
         contrasena: contrasena.text.trim(),
+        nombre: nombre.text.trim(),
+        puesto: puestoSeleccionado,
       );
 
       try {
@@ -84,13 +86,21 @@ class _SignUpPageState extends State<SignUpPage> {
           } else {
             // Otro tipo de error
             if (mounted) {
-              mostrarMensajeError(context, "Error", "Error al registrarse");
+              mostrarMensajeError(
+                context,
+                "Error",
+                "Error al registrarse ${e.message}",
+              );
             }
           }
         } else {
           // Si el error no es un FirebaseAuthException
           if (mounted) {
-            mostrarMensajeError(context, "Error", "Error al registrarse");
+            mostrarMensajeError(
+              context,
+              "Error",
+              "Error al registrarse ${e.toString()}",
+            );
           }
         }
       } finally {
@@ -107,8 +117,13 @@ class _SignUpPageState extends State<SignUpPage> {
 
   void _vaciarInputs() {
     correo.clear();
+    nombre.clear();
     contrasena.clear();
     confirmarContrasena.clear();
+
+    setState(() {
+      puestoSeleccionado = null;
+    });
   }
 
   String? _handleCorreo(String value) {

@@ -41,4 +41,28 @@ class UserData {
       rethrow;
     }
   }
+
+  Future<UserModel?> getUserById(String uid) async {
+    try {
+      DocumentSnapshot doc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+
+        return UserModel(
+          nombre: data['nombre'],
+          puesto: data['puesto'],
+          correo: data['email'],
+          contrasena: null,
+        );
+      }
+
+      return null;
+    } catch (e) {
+      throw Exception("Error al obtener usuario: $e");
+    }
+  }
 }

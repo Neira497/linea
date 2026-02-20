@@ -1,6 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:linea/data/user_data.dart';
+import 'package:linea/model/user_model.dart';
+import 'package:linea/pages/dashboard_page.dart';
 import 'package:linea/widgets/input_field.dart';
+import 'package:linea/widgets/mostrar_mensaje.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -49,66 +53,65 @@ class _SignInPageState extends State<SignInPage> {
     return null; // La contraseña es válido
   }
 
-  // // Metodo para iniciar sesion
-  // void _logIn() async {
-  //   setState(() {
-  //     procesando = true;
-  //   });
-  //   if (_formKey.currentState!.validate()) {
-  //     final userModel = UserModel(
-  //       email: _correo.text.trim(),
-  //       password: _contrasena.text.trim(),
-  //     );
+  // Metodo para iniciar sesion
+  void _logIn() async {
+    setState(() {
+      procesando = true;
+    });
+    if (_formKey.currentState!.validate()) {
+      final userModel = UserModel(
+        correo: _correo.text.trim(),
+        contrasena: _contrasena.text.trim(),
+      );
 
-  //     try {
-  //       await userData.loginUser(userModel);
+      try {
+        await userData.loginUser(userModel);
 
-  //       if (mounted) {
-  //         // Vaciar los inputs
-  //         _vaciarInputs();
-  //         setState(() {
-  //           procesando = false;
-  //         });
+        if (mounted) {
+          // Vaciar los inputs
+          _vaciarInputs();
+          setState(() {
+            procesando = false;
+          });
 
-  //         // Navegar a otra pantalla
-  //         Navigator.push(
-  //           context,
-  //           MaterialPageRoute(builder: (context) => GbAgrolink()),
-  //         );
-  //       }
-  //     } catch (e) {
-  //       setState(() {
-  //         procesando = false;
-  //       });
-  //       if (e is FirebaseAuthException) {
-  //         if (e.code == 'user-not-found') {
-  //           // Error si el usuario no fue encontrado
-  //           if (mounted) {
-  //           mostrarMensajeError(context, "Error", "El usuario no fue enconntrado");
-  //           }
-  //         } else {
-  //           // Otro tipo de error
-  //           if (mounted) {
-  //             mostrarMensajeError(context, "Error", "Error al iniciar sesion");
-  //           }
-  //         }
-  //       } else {
-  //         // Si el error no es un FirebaseAuthException
-  //         if (mounted) {
-  //           mostrarMensajeError(context, "Error", "Error al iniciar sesion");
-  //         }
-  //       }
-  //     } finally {
-  //       setState(() {
-  //         procesando = false;
-  //       });
-  //     }
-  //   } else {
-  //     setState(() {
-  //       procesando = false;
-  //     });
-  //   }
-  // }
+          // Navegar a otra pantalla
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => DashboardPage()),
+          );
+        }
+      } catch (e) {
+        setState(() {
+          procesando = false;
+        });
+        if (e is FirebaseAuthException) {
+          if (e.code == 'user-not-found') {
+            // Error si el usuario no fue encontrado
+            if (mounted) {
+              mostrarMensajeError(
+                context,
+                "Error",
+                "El usuario no fue enconntrado",
+              );
+            }
+          } else {
+            // Otro tipo de error
+            if (mounted) {
+              mostrarMensajeError(context, "Error", "Error al iniciar sesion");
+            }
+          }
+        }
+      } finally {
+        setState(() {
+          procesando = false;
+        });
+      }
+    } else {
+      setState(() {
+        procesando = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,8 +138,7 @@ class _SignInPageState extends State<SignInPage> {
           SizedBox(height: 20),
           // Boton
           ElevatedButton(
-            onPressed: null,
-            // onPressed: !procesando ? _logIn : null,
+            onPressed: !procesando ? _logIn : null,
             style: ButtonStyle(
               backgroundColor: WidgetStatePropertyAll(Colors.brown[100]),
             ),
