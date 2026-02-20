@@ -120,64 +120,177 @@ class _DashboardPageState extends State<DashboardPage> {
       body: Row(
         children: [
           if (isDesktop) SizedBox(width: 250, child: _buildDrawer()),
-          Expanded(child: _buildContent()),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(top: isDesktop ? 0 : 0),
+              child: Align(
+                alignment: isDesktop ? Alignment.topCenter : Alignment.center,
+                child: _buildContent(),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildDrawer() {
-    return Drawer(
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-      child: Column(
-        children: [
-          Container(
-            height: 120,
-            width: double.infinity,
-            color: Colors.brown.shade800,
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.all(16),
-            child: const Text(
-              "Menu",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+    const Color cafePrincipal = Color(0xFF5D4037);
+    const Color grisTexto = Color(0xFF616161);
+
+    Widget buildItem({
+      required int index,
+      required IconData icon,
+      required String title,
+    }) {
+      final bool isSelected = selectedIndex == index;
+
+      return InkWell(
+        onTap: () {
+          setState(() {
+            selectedIndex = index;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? cafePrincipal.withValues(alpha: .08)
+                : Colors.transparent,
+            border: Border(
+              left: BorderSide(
+                color: isSelected ? cafePrincipal : Colors.transparent,
+                width: 3,
               ),
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.dashboard),
-            title: const Text("Dashboard"),
-            selected: selectedIndex == 1,
-            onTap: () {
-              setState(() {
-                selectedIndex = 1;
-              });
-            },
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected ? cafePrincipal : grisTexto,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? cafePrincipal : grisTexto,
+                  ),
+                ),
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.bar_chart),
-            title: const Text("Reportes"),
-            selected: selectedIndex == 0,
-            onTap: () {
-              setState(() {
-                selectedIndex = 0;
-              });
-            },
-          ),
+        ),
+      );
+    }
 
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text("Perfil"),
-            selected: selectedIndex == 2,
-            onTap: () {
-              setState(() {
-                selectedIndex = 2;
-              });
-            },
-          ),
-        ],
+    return Container(
+      color: Colors.white,
+      child: SafeArea(
+        child: Column(
+          children: [
+            /// ===== HEADER CAFÉ =====
+            Container(
+              height: 120,
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: const BoxDecoration(color: cafePrincipal),
+              child: cargandoUsuario
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    )
+                  : Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: .15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.person, color: Colors.white),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                usuario?.nombre ?? "",
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                usuario?.puesto ?? "",
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+
+            const Divider(height: 1),
+
+            /// ===== MENÚ =====
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    buildItem(
+                      index: 1,
+                      icon: Icons.dashboard_outlined,
+                      title: "Dashboard",
+                    ),
+                    buildItem(
+                      index: 0,
+                      icon: Icons.bar_chart_outlined,
+                      title: "Reportes",
+                    ),
+                    buildItem(
+                      index: 2,
+                      icon: Icons.person_outline,
+                      title: "Perfil",
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const Divider(height: 1),
+
+            /// ===== FOOTER =====
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                "Sistema Línea v1.0",
+                style: TextStyle(
+                  fontSize: 11,
+                  color: grisTexto.withValues(alpha: .6),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
