@@ -147,17 +147,6 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.bar_chart),
-            title: const Text("Reportes"),
-            selected: selectedIndex == 0,
-            onTap: () {
-              setState(() {
-                selectedIndex = 0;
-              });
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
             leading: const Icon(Icons.dashboard),
             title: const Text("Dashboard"),
             selected: selectedIndex == 1,
@@ -165,9 +154,19 @@ class _DashboardPageState extends State<DashboardPage> {
               setState(() {
                 selectedIndex = 1;
               });
-              Navigator.pop(context);
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.bar_chart),
+            title: const Text("Reportes"),
+            selected: selectedIndex == 0,
+            onTap: () {
+              setState(() {
+                selectedIndex = 0;
+              });
+            },
+          ),
+
           ListTile(
             leading: const Icon(Icons.person),
             title: const Text("Perfil"),
@@ -176,7 +175,6 @@ class _DashboardPageState extends State<DashboardPage> {
               setState(() {
                 selectedIndex = 2;
               });
-              Navigator.pop(context);
             },
           ),
         ],

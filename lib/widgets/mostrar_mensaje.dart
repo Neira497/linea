@@ -2,6 +2,37 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:linea/widgets/responsive_widget.dart';
 
+Future<String?> seleccionarRazonDetencion(BuildContext context) async {
+  String? razonSeleccionada;
+
+  await AwesomeDialog(
+    width:
+        ResponsiveWidget.isDesktop(context) ||
+            ResponsiveWidget.isTablet(context)
+        ? 400
+        : null,
+    context: context,
+    dialogType: DialogType.question,
+    animType: AnimType.scale,
+    headerAnimationLoop: false,
+    title: "Detener línea de producción",
+    desc: "¿Por qué desea detener la línea?",
+    showCloseIcon: true,
+    btnOkText: "Mantenimiento",
+    btnOkColor: Colors.red,
+    btnOkOnPress: () {
+      razonSeleccionada = "Mantenimiento";
+    },
+    btnCancelText: "Producción",
+    btnCancelColor: Colors.red,
+    btnCancelOnPress: () {
+      razonSeleccionada = "Producción";
+    },
+  ).show();
+
+  return razonSeleccionada;
+}
+
 Future<dynamic> mostrarMensajeError(
   BuildContext context,
   String titulo,

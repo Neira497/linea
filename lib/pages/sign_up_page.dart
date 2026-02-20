@@ -31,18 +31,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
   TextEditingController puestos = TextEditingController();
 
-  String? _handlePuestos(String value) {
-    if (value.isEmpty) {
-      return "Selecciona el puesto";
-    }
-
-    if (!["Operador", "Mantenimiento", "Gerente"].contains(value)) {
-      return "Selecciona un puesto válido";
-    }
-
-    return null;
-  }
-
   // Metodo para registrar a un usuario
   void _signUp() async {
     setState(() {
