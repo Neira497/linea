@@ -20,6 +20,8 @@ class _DashboardPageState extends State<DashboardPage> {
   UserModel? usuario;
   bool cargandoUsuario = true;
 
+  final Color cafeApp = Colors.brown.shade800;
+
   @override
   void initState() {
     super.initState();
@@ -55,15 +57,12 @@ class _DashboardPageState extends State<DashboardPage> {
       appBar: isDesktop
           ? null
           : AppBar(
-              backgroundColor: Colors.brown.shade800,
+              backgroundColor: cafeApp, // ✅ mismo color
               iconTheme: const IconThemeData(color: Colors.white),
               leading: Builder(
                 builder: (context) {
                   return IconButton(
-                    icon: const Icon(
-                      Icons.menu,
-                      size: 40,
-                    ), // hamburguesa más grande
+                    icon: const Icon(Icons.menu, size: 40),
                     onPressed: () {
                       Scaffold.of(context).openDrawer();
                     },
@@ -120,22 +119,13 @@ class _DashboardPageState extends State<DashboardPage> {
       body: Row(
         children: [
           if (isDesktop) SizedBox(width: 250, child: _buildDrawer()),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(top: isDesktop ? 0 : 0),
-              child: Align(
-                alignment: isDesktop ? Alignment.topCenter : Alignment.center,
-                child: _buildContent(),
-              ),
-            ),
-          ),
+          Expanded(child: _buildContent()),
         ],
       ),
     );
   }
 
   Widget _buildDrawer() {
-    const Color cafePrincipal = Color(0xFF5D4037);
     const Color grisTexto = Color(0xFF616161);
 
     Widget buildItem({
@@ -156,23 +146,17 @@ class _DashboardPageState extends State<DashboardPage> {
           height: 52,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
-            color: isSelected
-                ? cafePrincipal.withValues(alpha: .08)
-                : Colors.transparent,
+            color: isSelected ? cafeApp.withValues(alpha: .08) : Colors.transparent,
             border: Border(
               left: BorderSide(
-                color: isSelected ? cafePrincipal : Colors.transparent,
+                color: isSelected ? cafeApp : Colors.transparent,
                 width: 3,
               ),
             ),
           ),
           child: Row(
             children: [
-              Icon(
-                icon,
-                size: 20,
-                color: isSelected ? cafePrincipal : grisTexto,
-              ),
+              Icon(icon, size: 20, color: isSelected ? cafeApp : grisTexto),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
@@ -181,7 +165,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? cafePrincipal : grisTexto,
+                    color: isSelected ? cafeApp : grisTexto,
                   ),
                 ),
               ),
@@ -196,12 +180,12 @@ class _DashboardPageState extends State<DashboardPage> {
       child: SafeArea(
         child: Column(
           children: [
-            /// ===== HEADER CAFÉ =====
+            /// 🔥 HEADER MISMO COLOR QUE APPBAR
             Container(
               height: 120,
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: const BoxDecoration(color: cafePrincipal),
+              decoration: BoxDecoration(color: cafeApp),
               child: cargandoUsuario
                   ? const Center(
                       child: CircularProgressIndicator(color: Colors.white),
@@ -250,35 +234,31 @@ class _DashboardPageState extends State<DashboardPage> {
 
             const Divider(height: 1),
 
-            /// ===== MENÚ =====
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    buildItem(
-                      index: 1,
-                      icon: Icons.dashboard_outlined,
-                      title: "Dashboard",
-                    ),
-                    buildItem(
-                      index: 0,
-                      icon: Icons.bar_chart_outlined,
-                      title: "Reportes",
-                    ),
-                    buildItem(
-                      index: 2,
-                      icon: Icons.person_outline,
-                      title: "Perfil",
-                    ),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  buildItem(
+                    index: 1,
+                    icon: Icons.dashboard_outlined,
+                    title: "Dashboard",
+                  ),
+                  buildItem(
+                    index: 0,
+                    icon: Icons.bar_chart_outlined,
+                    title: "Reportes",
+                  ),
+                  buildItem(
+                    index: 2,
+                    icon: Icons.person_outline,
+                    title: "Perfil",
+                  ),
+                ],
               ),
             ),
 
             const Divider(height: 1),
 
-            /// ===== FOOTER =====
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
