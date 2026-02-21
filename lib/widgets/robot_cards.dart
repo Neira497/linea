@@ -43,7 +43,9 @@ class _RobotCardsState extends State<RobotCards>
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = ResponsiveWidget.isDesktop(context);
+    final isDesktop =
+    ResponsiveWidget.isDesktop(context) ||
+    ResponsiveWidget.isTablet(context);
 
     /// 📱 MÓVIL → EXACTAMENTE COMO LO TENÍAS
     if (!isDesktop) {

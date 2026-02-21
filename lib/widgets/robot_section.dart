@@ -21,29 +21,44 @@ class RobotSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = ResponsiveWidget.isDesktop(context);
+    final width = MediaQuery.of(context).size.width;
+    final orientation = MediaQuery.of(context).orientation;
 
-    return isDesktop
-        ? Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              RobotCards(
-                funcionamientoLinea: funcionamientoLinea,
-                title: title,
-              ),
-              const SizedBox(width: 12), // 👈 juntos en horizontal
-              PiezaMetaCard(current: current, meta: meta, tipo: tipo),
-            ],
-          )
-        : Column(
-            children: [
-              RobotCards(
-                funcionamientoLinea: funcionamientoLinea,
-                title: title,
-              ),
-              const SizedBox(height: 12),
-              PiezaMetaCard(current: current, meta: meta, tipo: tipo),
-            ],
-          );
+    final bool isDesktop = width >= 1200;
+    final bool isLandscape = orientation == Orientation.landscape;
+
+    /// 💻 DESKTOP
+    if (isDesktop) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RobotCards(funcionamientoLinea: funcionamientoLinea, title: title),
+          const SizedBox(width: 20),
+          PiezaMetaCard(current: current, meta: meta, tipo: tipo),
+        ],
+      );
+    }
+
+    /// 📱 MÓVIL LANDSCAPE
+    if (isLandscape) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RobotCards(funcionamientoLinea: funcionamientoLinea, title: title),
+          const SizedBox(width: 20),
+          PiezaMetaCard(current: current, meta: meta, tipo: tipo),
+        ],
+      );
+    }
+
+    /// 📱 MÓVIL NORMAL (VERTICAL)
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        RobotCards(funcionamientoLinea: funcionamientoLinea, title: title),
+        const SizedBox(height: 20),
+        PiezaMetaCard(current: current, meta: meta, tipo: tipo),
+      ],
+    );
   }
 }

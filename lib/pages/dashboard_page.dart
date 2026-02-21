@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:linea/pages/dashboard_usuarios_page.dart';
+import 'package:linea/pages/login_page.dart';
 import 'package:linea/pages/perfil_page.dart';
 import 'package:linea/pages/reportes_page.dart';
-import 'package:linea/widgets/responsive_widget.dart';
 import 'package:linea/data/user_data.dart';
 import 'package:linea/model/user_model.dart';
 
@@ -20,7 +20,7 @@ class _DashboardPageState extends State<DashboardPage> {
   UserModel? usuario;
   bool cargandoUsuario = true;
 
-  final Color cafeApp = Colors.brown.shade800;
+  final Color cafeApp = const Color(0xFF5D4037);
 
   @override
   void initState() {
@@ -51,69 +51,27 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    bool isDesktop = ResponsiveWidget.isDesktop(context);
+    final width = MediaQuery.of(context).size.width;
+
+    /// Solo desktop real
+    final bool isDesktop = width >= 1200;
 
     return Scaffold(
       appBar: isDesktop
           ? null
           : AppBar(
-              backgroundColor: cafeApp, // ✅ mismo color
+              backgroundColor: cafeApp,
               iconTheme: const IconThemeData(color: Colors.white),
               leading: Builder(
                 builder: (context) {
                   return IconButton(
-                    icon: const Icon(Icons.menu, size: 40),
+                    icon: const Icon(Icons.menu),
                     onPressed: () {
                       Scaffold.of(context).openDrawer();
                     },
                   );
                 },
               ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: cargandoUsuario
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Row(
-                          children: [
-                            const Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: 35,
-                            ),
-                            const SizedBox(width: 8),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  usuario?.nombre ?? "",
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  usuario?.puesto ?? "",
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                ),
-              ],
             ),
       drawer: isDesktop ? null : _buildDrawer(),
       body: Row(
@@ -140,13 +98,16 @@ class _DashboardPageState extends State<DashboardPage> {
           setState(() {
             selectedIndex = index;
           });
+
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
         },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+        child: Container(
           height: 52,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
-            color: isSelected ? cafeApp.withValues(alpha: .08) : Colors.transparent,
+            color: isSelected ? cafeApp.withOpacity(.08) : Colors.transparent,
             border: Border(
               left: BorderSide(
                 color: isSelected ? cafeApp : Colors.transparent,
@@ -161,7 +122,6 @@ class _DashboardPageState extends State<DashboardPage> {
               Expanded(
                 child: Text(
                   title,
-                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
@@ -178,12 +138,13 @@ class _DashboardPageState extends State<DashboardPage> {
     return Container(
       color: Colors.white,
       child: SafeArea(
-        child: Column(
+        top: false,
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            /// 🔥 HEADER MISMO COLOR QUE APPBAR
+            /// HEADER
             Container(
               height: 120,
-              width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(color: cafeApp),
               child: cargandoUsuario
@@ -196,7 +157,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: .15),
+                            color: Colors.white.withOpacity(.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.person, color: Colors.white),
@@ -209,7 +170,6 @@ class _DashboardPageState extends State<DashboardPage> {
                             children: [
                               Text(
                                 usuario?.nombre ?? "",
-                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -219,7 +179,6 @@ class _DashboardPageState extends State<DashboardPage> {
                               const SizedBox(height: 2),
                               Text(
                                 usuario?.puesto ?? "",
-                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.white70,
@@ -234,39 +193,63 @@ class _DashboardPageState extends State<DashboardPage> {
 
             const Divider(height: 1),
 
-            Expanded(
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  buildItem(
-                    index: 1,
-                    icon: Icons.dashboard_outlined,
-                    title: "Dashboard",
+            const SizedBox(height: 10),
+
+            buildItem(
+              index: 1,
+              icon: Icons.dashboard_outlined,
+              title: "Dashboard",
+            ),
+            buildItem(
+              index: 0,
+              icon: Icons.bar_chart_outlined,
+              title: "Reportes",
+            ),
+            buildItem(index: 2, icon: Icons.person_outline, title: "Perfil"),
+
+            const SizedBox(height: 30),
+
+            /// BOTÓN CERRAR SESIÓN
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: InkWell(
+                onTap: () async {
+                  await FirebaseAuth.instance.signOut();
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    (route) => false, // 🔥 elimina todo el historial
+                  );
+                },
+                child: Container(
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  buildItem(
-                    index: 0,
-                    icon: Icons.bar_chart_outlined,
-                    title: "Reportes",
+                  child: const Center(
+                    child: Text(
+                      "Cerrar sesión",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  buildItem(
-                    index: 2,
-                    icon: Icons.person_outline,
-                    title: "Perfil",
-                  ),
-                ],
+                ),
               ),
             ),
 
+            const SizedBox(height: 30),
+
             const Divider(height: 1),
 
-            Padding(
-              padding: const EdgeInsets.all(16),
+            const Padding(
+              padding: EdgeInsets.all(16),
               child: Text(
                 "Sistema Línea v1.0",
-                style: TextStyle(
-                  fontSize: 11,
-                  color: grisTexto.withValues(alpha: .6),
-                ),
+                style: TextStyle(fontSize: 11, color: Color(0xFF9E9E9E)),
               ),
             ),
           ],
@@ -278,11 +261,11 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildContent() {
     switch (selectedIndex) {
       case 0:
-        return ReportesPage();
+        return const ReportesPage();
       case 1:
-        return DashboardUsuariosPage();
+        return const DashboardUsuariosPage();
       case 2:
-        return PerfilPage();
+        return const PerfilPage();
       default:
         return const SizedBox();
     }

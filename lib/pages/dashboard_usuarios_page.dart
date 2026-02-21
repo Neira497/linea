@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:linea/widgets/mostrar_mensaje.dart';
-import 'package:linea/widgets/responsive_widget.dart';
 import 'package:linea/widgets/robot_section.dart';
 
 class DashboardUsuariosPage extends StatefulWidget {
@@ -25,236 +24,240 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
   final Color fondoCafe = const Color(0xFFF5F1EE);
 
   @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isDesktop = ResponsiveWidget.isDesktop(context);
+    final width = MediaQuery.of(context).size.width;
 
-    if (isDesktop) {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          return Container(
-            width: double.infinity,
-            height: constraints.maxHeight,
-            color: fondoCafe,
-            child: Column(
-              children: [
-                /// ===== BARRA SUPERIOR =====
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: cafePrincipal),
-                  child: const Text(
-                    "Panel de Producción",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+    final bool isDesktop = width >= 1200;
+    final bool isTablet = width >= 700 && width < 1200;
 
-                /// ===== CONTENIDO CENTRADO =====
-                Expanded(
-                  child: Center(
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 1200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 60,
-                        vertical: 50,
-                      ),
-                      decoration: BoxDecoration(
-                        color: funcionamientoLinea
-                            ? const Color(0xFFFBF8F6)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 25,
-                            color: Colors.black.withValues(alpha: .08),
-                            offset: const Offset(0, 12),
-                          ),
-                        ],
-                      ),
-                      child: _buildContenido(context, true),
-                    ),
-                  ),
+    /// ================= DESKTOP Y TABLET =================
+    if (isDesktop || isTablet) {
+      return Container(
+        color: fondoCafe,
+        child: Column(
+          children: [
+            /// ===== BARRA SUPERIOR =====
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: cafePrincipal),
+              child: const Text(
+                "Panel de Producción",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
+              ),
             ),
-          );
-        },
+
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Container(
+                    constraints: BoxConstraints(
+                      maxWidth: isDesktop ? 1200 : 900,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 60,
+                      vertical: 50,
+                    ),
+                    decoration: BoxDecoration(
+                      color: funcionamientoLinea
+                          ? const Color(0xFFFBF8F6)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 25,
+                          color: Colors.black.withOpacity(.08),
+                          offset: const Offset(0, 12),
+                        ),
+                      ],
+                    ),
+                    child: _buildContenido(isDesktop),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
-    /// ===== MOBILE =====
+    /// ================= MOBILE =================
     return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: _buildContenido(context, false),
+      child: Container(
+        color: fondoCafe,
+        padding: const EdgeInsets.all(20),
+        child: _buildContenido(false),
       ),
     );
   }
 
-  Widget _buildContenido(BuildContext context, bool isDesktop) {
-    if (!isDesktop) {
-      /// ================= MOBILE MEJORADO =================
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 10),
+  Widget _buildContenido(bool isDesktop) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          "Detener o iniciar la linea de produccion",
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
 
-          const Text(
-            "Detener o iniciar la linea de produccion",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
+        const SizedBox(height: 20),
 
-          const SizedBox(height: 20),
-
-          /// BOTÓN CENTRADO
-          SizedBox(
-            width: double.infinity,
-            child: Center(
-              child: SizedBox(
-                width: 200,
-                height: 55,
-                child: Material(
-                  elevation: 6,
-                  color: funcionamientoLinea ? cafeOscuro : cafeMedio,
-                  borderRadius: BorderRadius.circular(12),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () async {
-                      if (funcionamientoLinea) {
-                        final razon = await seleccionarRazonDetencion(context);
-
-                        if (razon != null) {
-                          setState(() {
-                            funcionamientoLinea = false;
-                            razonDetencion = razon;
-                            tiempoDetenido = Duration.zero;
-                          });
-                          _iniciarCronometro();
-                        }
-                      } else {
-                        setState(() {
-                          funcionamientoLinea = true;
-                          razonDetencion = null;
-                        });
-                        timer?.cancel();
-                      }
-                    },
-                    child: Center(
-                      child: Text(
-                        funcionamientoLinea ? "DETENER" : "INICIAR",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+        /// BOTÓN
+        SizedBox(
+          width: 170,
+          height: 55,
+          child: Material(
+            elevation: 6,
+            color: funcionamientoLinea ? cafeOscuro : cafeMedio,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: _toggleLinea,
+              child: Center(
+                child: Text(
+                  funcionamientoLinea ? "DETENER" : "INICIAR",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
               ),
             ),
           ),
+        ),
 
-          /// CRONÓMETRO ABAJO DEL BOTÓN
-          if (!funcionamientoLinea && razonDetencion != null) ...[
-            const SizedBox(height: 15),
+        /// 🔥 CRONÓMETRO
+        if (!funcionamientoLinea && razonDetencion != null) ...[
+          const SizedBox(height: 20),
+          Text(
+            "Línea detenida por:",
+            style: TextStyle(fontWeight: FontWeight.bold, color: cafePrincipal),
+          ),
+          const SizedBox(height: 6),
+          Text(razonDetencion!, style: const TextStyle(fontSize: 18)),
+          const SizedBox(height: 6),
+          Text(
+            _formatearTiempo(tiempoDetenido),
+            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+          ),
+        ],
+
+        const SizedBox(height: 40),
+
+        Container(
+          height: 1,
+          width: double.infinity,
+          color: cafeClaro.withOpacity(.4),
+        ),
+
+        const SizedBox(height: 30),
+
+        /// TÍTULO ROBOTS
+        Column(
+          children: [
             Text(
-              "Línea detenida por:",
+              funcionamientoLinea
+                  ? "Robots en funcionamiento"
+                  : "Robots detenidos",
               style: TextStyle(
+                fontSize: 26,
                 fontWeight: FontWeight.bold,
-                color: cafePrincipal,
+                color: funcionamientoLinea ? cafeMedio : cafeOscuro,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(razonDetencion!, style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 6),
-            Text(
-              _formatearTiempo(tiempoDetenido),
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            const SizedBox(height: 8),
+            Container(
+              width: 70,
+              height: 4,
+              decoration: BoxDecoration(
+                color: funcionamientoLinea ? cafeClaro : cafePrincipal,
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ],
+        ),
 
-          const SizedBox(height: 30),
+        const SizedBox(height: 40),
 
-          Container(
-            height: 1,
-            width: double.infinity,
-            color: cafeClaro.withValues(alpha: .4),
-          ),
-
-          const SizedBox(height: 25),
-
-          /// TÍTULO ROBOTS MÁS COMPACTO
+        /// ===== ROBOTS =====
+        if (isDesktop)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RobotSection(
+                funcionamientoLinea: funcionamientoLinea,
+                title: "NEIRABOT",
+                current: 0,
+                meta: 20,
+                tipo: "Piezas",
+              ),
+              const SizedBox(width: 140),
+              RobotSection(
+                funcionamientoLinea: funcionamientoLinea,
+                title: "ROBOT 2",
+                current: 10,
+                meta: 10,
+                tipo: "Cajas",
+              ),
+            ],
+          )
+        else
           Column(
             children: [
-              Text(
-                funcionamientoLinea
-                    ? "Robots en funcionamiento"
-                    : "Robots detenidos",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: funcionamientoLinea ? cafeMedio : cafeOscuro,
-                ),
+              RobotSection(
+                funcionamientoLinea: funcionamientoLinea,
+                title: "NEIRABOT",
+                current: 0,
+                meta: 20,
+                tipo: "Piezas",
               ),
-              const SizedBox(height: 6),
-              Container(
-                width: 60,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: funcionamientoLinea ? cafeClaro : cafePrincipal,
-                  borderRadius: BorderRadius.circular(10),
-                ),
+              const SizedBox(height: 40),
+              RobotSection(
+                funcionamientoLinea: funcionamientoLinea,
+                title: "ROBOT 2",
+                current: 10,
+                meta: 10,
+                tipo: "Cajas",
               ),
             ],
           ),
-
-          const SizedBox(height: 30),
-
-          /// ROBOTS MÁS JUNTOS
-          RobotSection(
-            funcionamientoLinea: funcionamientoLinea,
-            title: "NEIRABOT",
-            current: 0,
-            meta: 20,
-            tipo: "Piezas",
-          ),
-
-          const SizedBox(height: 25),
-
-          RobotSection(
-            funcionamientoLinea: funcionamientoLinea,
-            title: "ROBOT 2",
-            current: 10,
-            meta: 10,
-            tipo: "Cajas",
-          ),
-
-          const SizedBox(height: 20),
-        ],
-      );
-    }
-
-    /// ================= DESKTOP (LO DEJAMOS IGUAL) =================
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // TU CÓDIGO ACTUAL DE DESKTOP
-        const Text(
-          "Detener o iniciar la linea de produccion",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 20),
-        // el resto lo dejas igual como ya lo tienes
       ],
     );
   }
 
+  void _toggleLinea() async {
+    if (funcionamientoLinea) {
+      final razon = await seleccionarRazonDetencion(context);
+      if (razon != null) {
+        setState(() {
+          funcionamientoLinea = false;
+          razonDetencion = razon;
+          tiempoDetenido = Duration.zero;
+        });
+        _iniciarCronometro();
+      }
+    } else {
+      setState(() {
+        funcionamientoLinea = true;
+        razonDetencion = null;
+      });
+      timer?.cancel();
+    }
+  }
+
   void _iniciarCronometro() {
+    timer?.cancel();
     timer = Timer.periodic(const Duration(seconds: 1), (t) {
       setState(() {
         tiempoDetenido += const Duration(seconds: 1);
