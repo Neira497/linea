@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:linea/widgets/pieza_meta_card.dart';
 import 'package:linea/widgets/robot_cards.dart';
-import 'package:linea/widgets/responsive_widget.dart';
 
 class RobotSection extends StatelessWidget {
   const RobotSection({

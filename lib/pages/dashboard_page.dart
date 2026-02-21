@@ -107,7 +107,9 @@ class _DashboardPageState extends State<DashboardPage> {
           height: 52,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
-            color: isSelected ? cafeApp.withOpacity(.08) : Colors.transparent,
+            color: isSelected
+                ? cafeApp.withValues(alpha: .08)
+                : Colors.transparent,
             border: Border(
               left: BorderSide(
                 color: isSelected ? cafeApp : Colors.transparent,
@@ -157,7 +159,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(.15),
+                            color: Colors.white.withValues(alpha: .15),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.person, color: Colors.white),
@@ -216,11 +218,15 @@ class _DashboardPageState extends State<DashboardPage> {
                 onTap: () async {
                   await FirebaseAuth.instance.signOut();
 
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                    (route) => false, // 🔥 elimina todo el historial
-                  );
+                  if (mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
+                      ),
+                      (route) => false, // 🔥 elimina todo el historial
+                    );
+                  }
                 },
                 child: Container(
                   height: 45,

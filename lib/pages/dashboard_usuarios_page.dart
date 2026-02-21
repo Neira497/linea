@@ -76,7 +76,7 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
                       boxShadow: [
                         BoxShadow(
                           blurRadius: 25,
-                          color: Colors.black.withOpacity(.08),
+                          color: Colors.black.withValues(alpha: .08),
                           offset: const Offset(0, 12),
                         ),
                       ],
@@ -158,7 +158,7 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
         Container(
           height: 1,
           width: double.infinity,
-          color: cafeClaro.withOpacity(.4),
+          color: cafeClaro.withValues(alpha: .4),
         ),
 
         const SizedBox(height: 30),
