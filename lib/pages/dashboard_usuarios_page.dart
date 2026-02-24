@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:linea/data/paro_data.dart';
 import 'package:linea/widgets/mostrar_mensaje.dart';
 import 'package:linea/widgets/robot_section.dart';
 
@@ -11,10 +12,8 @@ class DashboardUsuariosPage extends StatefulWidget {
 }
 
 class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
-  bool funcionamientoLinea = false;
-  String? razonDetencion;
-  Duration tiempoDetenido = Duration.zero;
   Timer? timer;
+  final ParoData _paroData = ParoData();
 
   /// 🎨 PALETA INDUSTRIAL CAFÉ
   final Color cafeOscuro = const Color(0xFF4E342E);
@@ -24,6 +23,18 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
   final Color fondoCafe = const Color(0xFFF5F1EE);
 
   @override
+  void initState() {
+    super.initState();
+
+    /// Solo fuerza redibujado cada segundo
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
   void dispose() {
     timer?.cancel();
     super.dispose();
@@ -31,77 +42,111 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
+    return StreamBuilder<Map<String, dynamic>>(
+      stream: _paroData.obtenerEstadoLinea(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    final bool isDesktop = width >= 1200;
-    final bool isTablet = width >= 700 && width < 1200;
+        final bool funcionamientoLinea =
+            snapshot.data!["funcionamientoLinea"] as bool;
 
-    /// ================= DESKTOP Y TABLET =================
-    if (isDesktop || isTablet) {
-      return Container(
-        color: fondoCafe,
-        child: Column(
-          children: [
-            /// ===== BARRA SUPERIOR =====
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: cafePrincipal),
-              child: const Text(
-                "Panel de Producción",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+        final int? inicioParo = snapshot.data!["inicioParo"] as int?;
 
-            Expanded(
-              child: Center(
-                child: SingleChildScrollView(
-                  child: Container(
-                    constraints: BoxConstraints(
-                      maxWidth: isDesktop ? 1200 : 900,
+        final String? razonParo = snapshot.data!["razonParo"] as String?;
+
+        Duration tiempoDetenido = Duration.zero;
+
+        if (!funcionamientoLinea && inicioParo != null) {
+          tiempoDetenido = DateTime.now().difference(
+            DateTime.fromMillisecondsSinceEpoch(inicioParo),
+          );
+        }
+
+        final width = MediaQuery.of(context).size.width;
+        final bool isDesktop = width >= 1200;
+        final bool isTablet = width >= 700 && width < 1200;
+
+        if (isDesktop || isTablet) {
+          return Container(
+            color: fondoCafe,
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: cafePrincipal),
+                  child: const Text(
+                    "Panel de Producción",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 60,
-                      vertical: 50,
-                    ),
-                    decoration: BoxDecoration(
-                      color: funcionamientoLinea
-                          ? const Color(0xFFFBF8F6)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 25,
-                          color: Colors.black.withValues(alpha: .08),
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
-                    ),
-                    child: _buildContenido(isDesktop),
                   ),
                 ),
-              ),
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Container(
+                        constraints: BoxConstraints(
+                          maxWidth: isDesktop ? 1200 : 900,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 60,
+                          vertical: 50,
+                        ),
+                        decoration: BoxDecoration(
+                          color: funcionamientoLinea
+                              ? const Color(0xFFFBF8F6)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 25,
+                              color: Colors.black.withValues(alpha: .08),
+                              offset: const Offset(0, 12),
+                            ),
+                          ],
+                        ),
+                        child: _buildContenido(
+                          isDesktop,
+                          funcionamientoLinea,
+                          tiempoDetenido,
+                          razonParo,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
-    }
+          );
+        }
 
-    /// ================= MOBILE =================
-    return SingleChildScrollView(
-      child: Container(
-        color: fondoCafe,
-        padding: const EdgeInsets.all(20),
-        child: _buildContenido(false),
-      ),
+        return SingleChildScrollView(
+          child: Container(
+            color: fondoCafe,
+            padding: const EdgeInsets.all(20),
+            child: _buildContenido(
+              false,
+              funcionamientoLinea,
+              tiempoDetenido,
+              razonParo,
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildContenido(bool isDesktop) {
+  Widget _buildContenido(
+    bool isDesktop,
+    bool funcionamientoLinea,
+    Duration tiempoDetenido,
+    String? razonParo,
+  ) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -122,7 +167,7 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: _toggleLinea,
+              onTap: () => _toggleLinea(funcionamientoLinea),
               child: Center(
                 child: Text(
                   funcionamientoLinea ? "DETENER" : "INICIAR",
@@ -137,16 +182,24 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
           ),
         ),
 
-        /// 🔥 CRONÓMETRO
-        if (!funcionamientoLinea && razonDetencion != null) ...[
+        /// 🔥 RAZÓN + CRONÓMETRO
+        if (!funcionamientoLinea) ...[
           const SizedBox(height: 20),
-          Text(
+
+          const Text(
             "Línea detenida por:",
-            style: TextStyle(fontWeight: FontWeight.bold, color: cafePrincipal),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
+
           const SizedBox(height: 6),
-          Text(razonDetencion!, style: const TextStyle(fontSize: 18)),
+
+          Text(
+            razonParo ?? "Sin especificar",
+            style: const TextStyle(fontSize: 18),
+          ),
+
           const SizedBox(height: 6),
+
           Text(
             _formatearTiempo(tiempoDetenido),
             style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
@@ -190,7 +243,7 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
 
         const SizedBox(height: 40),
 
-        /// ===== ROBOTS =====
+        /// ROBOTS
         if (isDesktop)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -236,33 +289,16 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
     );
   }
 
-  void _toggleLinea() async {
+  void _toggleLinea(bool funcionamientoLinea) async {
     if (funcionamientoLinea) {
       final razon = await seleccionarRazonDetencion(context);
+
       if (razon != null) {
-        setState(() {
-          funcionamientoLinea = false;
-          razonDetencion = razon;
-          tiempoDetenido = Duration.zero;
-        });
-        _iniciarCronometro();
+        await _paroData.detenerLinea(razon);
       }
     } else {
-      setState(() {
-        funcionamientoLinea = true;
-        razonDetencion = null;
-      });
-      timer?.cancel();
+      await _paroData.iniciarLinea();
     }
-  }
-
-  void _iniciarCronometro() {
-    timer?.cancel();
-    timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      setState(() {
-        tiempoDetenido += const Duration(seconds: 1);
-      });
-    });
   }
 
   String _formatearTiempo(Duration d) {
