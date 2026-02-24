@@ -53,6 +53,7 @@ class DefaultFirebaseOptions {
     projectId: 'linea-d4f72',
     authDomain: 'linea-d4f72.firebaseapp.com',
     storageBucket: 'linea-d4f72.firebasestorage.app',
+    databaseURL: 'https://linea-d4f72-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -70,6 +71,6 @@ class DefaultFirebaseOptions {
     projectId: 'linea-d4f72',
     authDomain: 'linea-d4f72.firebaseapp.com',
     storageBucket: 'linea-d4f72.firebasestorage.app',
+    databaseURL: 'https://linea-d4f72-default-rtdb.firebaseio.com',
   );
-
 }

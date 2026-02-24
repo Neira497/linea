@@ -45,6 +45,9 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
     return StreamBuilder<Map<String, dynamic>>(
       stream: _paroData.obtenerEstadoLinea(),
       builder: (context, snapshot) {
+        debugPrint(snapshot.connectionState.toString());
+        debugPrint(snapshot.hasData.toString());
+        debugPrint(snapshot.error.toString());
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }

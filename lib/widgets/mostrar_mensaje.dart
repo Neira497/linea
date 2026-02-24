@@ -2,35 +2,42 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:linea/widgets/responsive_widget.dart';
 
-Future<String?> seleccionarRazonDetencion(BuildContext context) async {
-  String? razonSeleccionada;
-
-  await AwesomeDialog(
-    width:
-        ResponsiveWidget.isDesktop(context) ||
-            ResponsiveWidget.isTablet(context)
-        ? 400
-        : null,
+Future<String?> seleccionarRazonDetencion(BuildContext context) {
+  return showDialog<String>(
     context: context,
-    dialogType: DialogType.question,
-    animType: AnimType.scale,
-    headerAnimationLoop: false,
-    title: "Detener línea de producción",
-    desc: "¿Por qué desea detener la línea?",
-    showCloseIcon: true,
-    btnOkText: "Mantenimiento",
-    btnOkColor: Colors.red,
-    btnOkOnPress: () {
-      razonSeleccionada = "Mantenimiento";
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text(
+          "Seleccionar razón de paro",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _razonItem(context, "Falla eléctrica"),
+            _razonItem(context, "Mantenimiento"),
+            _razonItem(context, "Falta de material"),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar"),
+          ),
+        ],
+      );
     },
-    btnCancelText: "Producción",
-    btnCancelColor: Colors.red,
-    btnCancelOnPress: () {
-      razonSeleccionada = "Producción";
-    },
-  ).show();
+  );
+}
 
-  return razonSeleccionada;
+Widget _razonItem(BuildContext context, String razon) {
+  return ListTile(
+    leading: const Icon(Icons.warning_amber_rounded),
+    title: Text(razon),
+    onTap: () => Navigator.pop(context, razon),
+  );
 }
 
 Future<dynamic> mostrarMensajeError(
