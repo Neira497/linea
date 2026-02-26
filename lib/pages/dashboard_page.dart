@@ -73,17 +73,17 @@ class _DashboardPageState extends State<DashboardPage> {
                 },
               ),
             ),
-      drawer: isDesktop ? null : _buildDrawer(),
+      drawer: isDesktop ? null : _buildDrawer(isDesktop),
       body: Row(
         children: [
-          if (isDesktop) SizedBox(width: 250, child: _buildDrawer()),
+          if (isDesktop) SizedBox(width: 250, child: _buildDrawer(isDesktop)),
           Expanded(child: _buildContent()),
         ],
       ),
     );
   }
 
-  Widget _buildDrawer() {
+  Widget _buildDrawer(bool isDesktop) {
     const Color grisTexto = Color(0xFF616161);
 
     Widget buildItem({
@@ -99,7 +99,8 @@ class _DashboardPageState extends State<DashboardPage> {
             selectedIndex = index;
           });
 
-          if (Navigator.of(context).canPop()) {
+          // 🔥 SOLO cerrar drawer en móvil
+          if (!isDesktop && Navigator.of(context).canPop()) {
             Navigator.of(context).pop();
           }
         },
@@ -194,7 +195,6 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
 
             const Divider(height: 1),
-
             const SizedBox(height: 10),
 
             buildItem(
@@ -224,7 +224,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       MaterialPageRoute(
                         builder: (context) => const LoginPage(),
                       ),
-                      (route) => false, // 🔥 elimina todo el historial
+                      (route) => false,
                     );
                   }
                 },
@@ -248,7 +248,6 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
 
             const SizedBox(height: 30),
-
             const Divider(height: 1),
 
             const Padding(
