@@ -9,7 +9,7 @@ class ReportesPage extends StatefulWidget {
 }
 
 class _ReportesPageState extends State<ReportesPage> {
-  DateTime fechaSeleccionada = DateTime.now().subtract(const Duration(days: 1));
+  DateTime fechaSeleccionada = DateTime.now();
   final ParoData _paroData = ParoData();
   Future<int>? _futureCantidadParos;
 
