@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:linea/data/paro_data.dart';
 import 'package:linea/widgets/mostrar_mensaje.dart';
@@ -26,7 +27,6 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
   void initState() {
     super.initState();
 
-    /// Solo fuerza redibujado cada segundo
     timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
         setState(() {});
@@ -45,9 +45,6 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
     return StreamBuilder<Map<String, dynamic>>(
       stream: _paroData.obtenerEstadoLinea(),
       builder: (context, snapshot) {
-        debugPrint(snapshot.connectionState.toString());
-        debugPrint(snapshot.hasData.toString());
-        debugPrint(snapshot.error.toString());
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -118,6 +115,7 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
                           funcionamientoLinea,
                           tiempoDetenido,
                           razonParo,
+                          inicioParo, // ✅ AHORA SE PASA
                         ),
                       ),
                     ),
@@ -137,6 +135,7 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
               funcionamientoLinea,
               tiempoDetenido,
               razonParo,
+              inicioParo, // ✅ AHORA SE PASA
             ),
           ),
         );
@@ -144,11 +143,13 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
     );
   }
 
+  /// ✅ CORREGIDO AQUÍ (inicioParo es int?)
   Widget _buildContenido(
     bool isDesktop,
     bool funcionamientoLinea,
     Duration tiempoDetenido,
     String? razonParo,
+    int? inicioParo,
   ) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -160,7 +161,6 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
 
         const SizedBox(height: 20),
 
-        /// BOTÓN
         SizedBox(
           width: 170,
           height: 55,
@@ -170,7 +170,8 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: () => _toggleLinea(funcionamientoLinea),
+              onTap: () =>
+                  _toggleLinea(funcionamientoLinea, inicioParo, razonParo),
               child: Center(
                 child: Text(
                   funcionamientoLinea ? "DETENER" : "INICIAR",
@@ -185,24 +186,18 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
           ),
         ),
 
-        /// 🔥 RAZÓN + CRONÓMETRO
         if (!funcionamientoLinea) ...[
           const SizedBox(height: 20),
-
           const Text(
             "Línea detenida por:",
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-
           const SizedBox(height: 6),
-
           Text(
             razonParo ?? "Sin especificar",
             style: const TextStyle(fontSize: 18),
           ),
-
           const SizedBox(height: 6),
-
           Text(
             _formatearTiempo(tiempoDetenido),
             style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
@@ -219,7 +214,6 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
 
         const SizedBox(height: 30),
 
-        /// TÍTULO ROBOTS
         Column(
           children: [
             Text(
@@ -246,7 +240,6 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
 
         const SizedBox(height: 40),
 
-        /// ROBOTS
         if (isDesktop)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -292,7 +285,11 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
     );
   }
 
-  void _toggleLinea(bool funcionamientoLinea) async {
+  void _toggleLinea(
+    bool funcionamientoLinea,
+    int? inicioParo,
+    String? razonParo,
+  ) async {
     if (funcionamientoLinea) {
       final razon = await seleccionarRazonDetencion(context);
 
@@ -300,7 +297,15 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
         await _paroData.detenerLinea(razon);
       }
     } else {
-      await _paroData.iniciarLinea();
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user != null && inicioParo != null && razonParo != null) {
+        await _paroData.iniciarLinea(
+          uid: user.uid,
+          inicioParo: inicioParo,
+          motivo: razonParo,
+        );
+      }
     }
   }
 
