@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:linea/data/paro_data.dart';
+import 'package:linea/data/piezas_caja.dart';
 
 class ReportesPage extends StatefulWidget {
   const ReportesPage({super.key});
@@ -15,6 +16,8 @@ class _ReportesPageState extends State<ReportesPage> {
   Future<int>? _futureCantidadParos;
   Future<Map<String, int>>? _futureMotivos;
   Future<List<Map<String, dynamic>>>? _futureDetalleParos;
+  final PiezasCajasData _piezasCajasData = PiezasCajasData();
+  Future<Map<String, int>>? _futureRobots;
 
   /// 🎨 PALETA INDUSTRIAL
   final Color cafeOscuro = const Color(0xFF4E342E);
@@ -38,6 +41,10 @@ class _ReportesPageState extends State<ReportesPage> {
       _futureMotivos = _paroData.obtenerMotivosPorDia(fechaSeleccionada);
 
       _futureDetalleParos = _paroData.obtenerDetalleParosPorDia(
+        fechaSeleccionada,
+      );
+
+      _futureRobots = _piezasCajasData.obtenerCantidadRobotsPorFecha(
         fechaSeleccionada,
       );
     });
@@ -303,7 +310,97 @@ class _ReportesPageState extends State<ReportesPage> {
             );
           },
         ),
+
+        FutureBuilder<Map<String, int>>(
+          future: _futureRobots,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(height: 40);
+            }
+
+            final neirabot = snapshot.data?["neirabot"] ?? 0;
+            final cabot = snapshot.data?["cabot"] ?? 0;
+
+            return Padding(
+              padding: const EdgeInsets.only(top: 40),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildEntregaCard(
+                      titulo: "Piezas entregadas",
+                      valor: neirabot.toString(),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: _buildEntregaCard(
+                      titulo: "Cajas entregadas",
+                      valor: cabot.toString(),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ],
+    );
+  }
+
+  Widget _buildEntregaCard({required String titulo, required String valor}) {
+    IconData icono;
+
+    /// 🔥 Elegimos icono según el título
+    if (titulo.contains("Piezas")) {
+      icono = Icons.precision_manufacturing; // 🔩 pieza / engrane
+    } else {
+      icono = Icons.inventory_2; // 📦 caja
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 15,
+            color: Colors.black.withValues(alpha: .08),
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          /// 🔹 TÍTULO CON ICONO
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icono, color: cafeOscuro, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                titulo,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 15),
+
+          /// 🔹 VALOR
+          Text(
+            valor,
+            style: TextStyle(
+              fontSize: 40,
+              fontWeight: FontWeight.bold,
+              color: cafeOscuro,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

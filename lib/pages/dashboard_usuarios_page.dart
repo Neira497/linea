@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:linea/data/paro_data.dart';
+import 'package:linea/data/piezas_caja.dart';
 import 'package:linea/widgets/mostrar_mensaje.dart';
 import 'package:linea/widgets/robot_section.dart';
 
@@ -15,6 +16,7 @@ class DashboardUsuariosPage extends StatefulWidget {
 class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
   Timer? timer;
   final ParoData _paroData = ParoData();
+  final PiezasCajasData _piezasCajasData = PiezasCajasData();
 
   /// 🎨 PALETA INDUSTRIAL CAFÉ
   final Color cafeOscuro = const Color(0xFF4E342E);
@@ -241,45 +243,69 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
         const SizedBox(height: 40),
 
         if (isDesktop)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              RobotSection(
-                funcionamientoLinea: funcionamientoLinea,
-                title: "NEIRABOT",
-                current: 0,
-                meta: 20,
-                tipo: "Piezas",
-              ),
-              const SizedBox(width: 140),
-              RobotSection(
-                funcionamientoLinea: funcionamientoLinea,
-                title: "CABOT",
-                current: 10,
-                meta: 10,
-                tipo: "Cajas",
-              ),
-            ],
+          StreamBuilder<Map<String, int>>(
+            stream: _piezasCajasData.obtenerCantidadRobotsHoyStream(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              }
+
+              final neirabot = snapshot.data!["neirabot"] ?? 0;
+              final cabot = snapshot.data!["cabot"] ?? 0;
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  RobotSection(
+                    funcionamientoLinea: funcionamientoLinea,
+                    title: "NEIRABOT",
+                    current: neirabot,
+                    meta: 20,
+                    tipo: "Piezas",
+                  ),
+                  const SizedBox(width: 140),
+                  RobotSection(
+                    funcionamientoLinea: funcionamientoLinea,
+                    title: "CABOT",
+                    current: cabot,
+                    meta: 10,
+                    tipo: "Cajas",
+                  ),
+                ],
+              );
+            },
           )
         else
-          Column(
-            children: [
-              RobotSection(
-                funcionamientoLinea: funcionamientoLinea,
-                title: "NEIRABOT",
-                current: 0,
-                meta: 20,
-                tipo: "Piezas",
-              ),
-              const SizedBox(height: 40),
-              RobotSection(
-                funcionamientoLinea: funcionamientoLinea,
-                title: "CABOT",
-                current: 10,
-                meta: 10,
-                tipo: "Cajas",
-              ),
-            ],
+          StreamBuilder<Map<String, int>>(
+            stream: _piezasCajasData.obtenerCantidadRobotsHoyStream(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              }
+
+              final neirabot = snapshot.data!["neirabot"] ?? 0;
+              final cabot = snapshot.data!["cabot"] ?? 0;
+
+              return Column(
+                children: [
+                  RobotSection(
+                    funcionamientoLinea: funcionamientoLinea,
+                    title: "NEIRABOT",
+                    current: neirabot,
+                    meta: 20,
+                    tipo: "Piezas",
+                  ),
+                  const SizedBox(height: 40),
+                  RobotSection(
+                    funcionamientoLinea: funcionamientoLinea,
+                    title: "CABOT",
+                    current: cabot,
+                    meta: 10,
+                    tipo: "Cajas",
+                  ),
+                ],
+              );
+            },
           ),
       ],
     );
