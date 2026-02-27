@@ -254,7 +254,7 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
               const SizedBox(width: 140),
               RobotSection(
                 funcionamientoLinea: funcionamientoLinea,
-                title: "ROBOT 2",
+                title: "CABOT",
                 current: 10,
                 meta: 10,
                 tipo: "Cajas",
@@ -274,7 +274,7 @@ class _DashboardUsuariosPageState extends State<DashboardUsuariosPage> {
               const SizedBox(height: 40),
               RobotSection(
                 funcionamientoLinea: funcionamientoLinea,
-                title: "ROBOT 2",
+                title: "CABOT",
                 current: 10,
                 meta: 10,
                 tipo: "Cajas",
