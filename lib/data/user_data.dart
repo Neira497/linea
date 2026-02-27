@@ -30,6 +30,29 @@ class UserData {
     }
   }
 
+  Future<UserModel?> getCurrentUserData() async {
+    try {
+      final user = _auth.currentUser;
+
+      if (user == null) return null;
+
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+
+      if (!doc.exists) return null;
+
+      final data = doc.data() as Map<String, dynamic>;
+
+      return UserModel(
+        nombre: data['nombre'],
+        puesto: data['puesto'],
+        correo: data['email'],
+        contrasena: null,
+      );
+    } catch (e) {
+      throw Exception("Error al obtener usuario actual: $e");
+    }
+  }
+
   // Iniciar sesion a un usuario
   Future<void> loginUser(UserModel user) async {
     try {

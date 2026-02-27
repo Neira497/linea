@@ -323,16 +323,19 @@ class _ReportesPageState extends State<ReportesPage> {
 
             return Padding(
               padding: const EdgeInsets.only(top: 40),
-              child: Row(
+              child: Wrap(
+                spacing: 20,
+                runSpacing: 20,
                 children: [
-                  Expanded(
+                  SizedBox(
+                    width: 320,
                     child: _buildEntregaCard(
                       titulo: "Piezas entregadas",
                       valor: neirabot.toString(),
                     ),
                   ),
-                  const SizedBox(width: 20),
-                  Expanded(
+                  SizedBox(
+                    width: 320,
                     child: _buildEntregaCard(
                       titulo: "Cajas entregadas",
                       valor: cabot.toString(),
@@ -670,10 +673,7 @@ class _ReportesPageState extends State<ReportesPage> {
   }
 
   Widget _buildResponsiveCard(String valor) {
-    final width = MediaQuery.of(context).size.width;
-    final bool esMovil = width < 700;
-
-    Widget card = Container(
+    return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -705,11 +705,5 @@ class _ReportesPageState extends State<ReportesPage> {
         ],
       ),
     );
-
-    if (esMovil) {
-      return Column(children: [card]);
-    } else {
-      return Expanded(child: card);
-    }
   }
 }
