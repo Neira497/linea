@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:linea/data/paro_data.dart';
 
@@ -12,6 +13,8 @@ class _ReportesPageState extends State<ReportesPage> {
   DateTime fechaSeleccionada = DateTime.now();
   final ParoData _paroData = ParoData();
   Future<int>? _futureCantidadParos;
+  Future<Map<String, int>>? _futureMotivos;
+  Future<List<Map<String, dynamic>>>? _futureDetalleParos;
 
   /// 🎨 PALETA INDUSTRIAL
   final Color cafeOscuro = const Color(0xFF4E342E);
@@ -29,6 +32,12 @@ class _ReportesPageState extends State<ReportesPage> {
   void _consultar() {
     setState(() {
       _futureCantidadParos = _paroData.obtenerCantidadParosPorDia(
+        fechaSeleccionada,
+      );
+
+      _futureMotivos = _paroData.obtenerMotivosPorDia(fechaSeleccionada);
+
+      _futureDetalleParos = _paroData.obtenerDetalleParosPorDia(
         fechaSeleccionada,
       );
     });
@@ -211,23 +220,356 @@ class _ReportesPageState extends State<ReportesPage> {
 
         const SizedBox(height: 40),
 
-        /// CARD 1
-        FutureBuilder<int>(
-          future: _futureCantidadParos,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final bool esMovil = constraints.maxWidth < 700;
+
+            if (esMovil) {
+              /// 📱 MÓVIL → UNA DEBAJO DE OTRA
+              return Column(
+                children: [
+                  FutureBuilder<int>(
+                    future: _futureCantidadParos,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return _buildResponsiveCard("...");
+                      }
+                      return _buildResponsiveCard(
+                        snapshot.data?.toString() ?? "0",
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: _futureDetalleParos,
+                    builder: (context, snapshot) {
+                      List<Map<String, dynamic>> datos = snapshot.data ?? [];
+                      return _buildDetalleCard(datos);
+                    },
+                  ),
+                ],
+              );
+            } else {
+              /// 💻 DESKTOP/TABLET → LADO A LADO
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: FutureBuilder<int>(
+                      future: _futureCantidadParos,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return _buildResponsiveCard("...");
+                        }
+                        return _buildResponsiveCard(
+                          snapshot.data?.toString() ?? "0",
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  Expanded(
+                    child: FutureBuilder<List<Map<String, dynamic>>>(
+                      future: _futureDetalleParos,
+                      builder: (context, snapshot) {
+                        List<Map<String, dynamic>> datos = snapshot.data ?? [];
+                        return _buildDetalleCard(datos);
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }
+          },
+        ),
+
+        FutureBuilder<Map<String, int>>(
+          future: _futureMotivos,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return _buildResponsiveCard("...");
+            Map<String, int> datos = {};
+
+            if (snapshot.hasData) {
+              datos = snapshot.data!;
             }
 
-            if (!snapshot.hasData) {
-              return _buildResponsiveCard("0");
-            }
-
-            return _buildResponsiveCard(snapshot.data!.toString());
+            return _buildGraficaCard(
+              datos,
+              cargando: snapshot.connectionState == ConnectionState.waiting,
+            );
           },
         ),
       ],
     );
+  }
+
+  Widget _buildGraficaCard(Map<String, int> datos, {bool cargando = false}) {
+    return Container(
+      margin: const EdgeInsets.only(top: 40),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 15,
+            color: Colors.black.withValues(alpha: .08),
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const Text(
+            "Razones de paro",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 30),
+
+          SizedBox(
+            height: 250,
+            child: Stack(
+              children: [
+                /// 🔹 La gráfica SIEMPRE está renderizada
+                LineChart(
+                  LineChartData(
+                    minX: 0,
+                    maxX: 2,
+                    minY: 0,
+
+                    gridData: FlGridData(show: true),
+
+                    borderData: FlBorderData(
+                      show: true,
+                      border: const Border(
+                        left: BorderSide(),
+                        bottom: BorderSide(),
+                      ),
+                    ),
+
+                    titlesData: FlTitlesData(
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          interval: 1,
+                          getTitlesWidget: (value, meta) {
+                            if (value % 1 == 0) {
+                              return Text(
+                                value.toInt().toString(),
+                                style: const TextStyle(fontSize: 12),
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                        ),
+                      ),
+
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          interval: 1,
+                          getTitlesWidget: (value, meta) {
+                            switch (value.toInt()) {
+                              case 0:
+                                return const Text(
+                                  "Electrico",
+                                  style: TextStyle(fontSize: 11),
+                                );
+                              case 1:
+                                return const Text(
+                                  "Mantenimiento",
+                                  style: TextStyle(fontSize: 11),
+                                );
+                              case 2:
+                                return const Text(
+                                  "Material",
+                                  style: TextStyle(fontSize: 11),
+                                );
+                              default:
+                                return const SizedBox();
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: [
+                          FlSpot(0, (datos["Electrico"] ?? 0).toDouble()),
+                          FlSpot(1, (datos["Mantenimiento"] ?? 0).toDouble()),
+                          FlSpot(2, (datos["Material"] ?? 0).toDouble()),
+                        ],
+                        dotData: FlDotData(show: true),
+                        color: cafeOscuro,
+                        barWidth: 3,
+                      ),
+                    ],
+
+                    lineTouchData: LineTouchData(enabled: false),
+                  ),
+                ),
+
+                /// 🔹 Loader encima (opcional)
+                if (cargando)
+                  Container(
+                    color: Colors.white.withValues(alpha: .6),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetalleCard(List<Map<String, dynamic>> datos) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 15,
+            color: Colors.black.withValues(alpha: .08),
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Detalle de paros",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+
+          const SizedBox(height: 15),
+
+          /// 🔥 ENCABEZADO
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0ECE9),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    "Operador",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    "Tiempo",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    "Motivo",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    "Hora",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// 🔥 TABLA
+          SizedBox(
+            height: 250,
+            child: datos.isEmpty
+                ? const Center(child: Text("Sin registros"))
+                : ListView.separated(
+                    itemCount: datos.length,
+                    separatorBuilder: (_, __) => const Divider(height: 12),
+                    itemBuilder: (context, index) {
+                      final item = datos[index];
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                item["nombre"] ?? "",
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                _formatearDuracion(
+                                  item["duracionSegundos"] ?? 0,
+                                ),
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                item["motivo"] ?? "",
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                item["hora"] ?? "--:--:--",
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatearDuracion(int segundos) {
+    final int horas = segundos ~/ 3600;
+    final int minutos = (segundos % 3600) ~/ 60;
+    final int seg = segundos % 60;
+
+    if (horas > 0) {
+      return "${horas}h ${minutos}m ${seg}s";
+    } else if (minutos > 0) {
+      return "${minutos}m ${seg}s";
+    } else {
+      return "${seg}s";
+    }
   }
 
   Widget _buildResponsiveCard(String valor) {
@@ -270,13 +612,7 @@ class _ReportesPageState extends State<ReportesPage> {
     if (esMovil) {
       return Column(children: [card]);
     } else {
-      return Row(
-        children: [
-          Expanded(child: card),
-          const SizedBox(width: 20),
-          const Expanded(child: SizedBox()),
-        ],
-      );
+      return Expanded(child: card);
     }
   }
 }
