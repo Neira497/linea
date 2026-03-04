@@ -3,21 +3,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class PiezasCajasData {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // STREAM (Dashboard en vivo)
   Stream<Map<String, int>> obtenerCantidadRobotsHoyStream() {
-    final DateTime ahora = DateTime.now();
+    final ahora = DateTime.now();
 
-    final DateTime inicioLocal = DateTime(ahora.year, ahora.month, ahora.day);
+    final inicioLocal = DateTime(ahora.year, ahora.month, ahora.day);
+    final finLocal = inicioLocal.add(const Duration(days: 1));
 
-    final DateTime finLocal = inicioLocal.add(const Duration(days: 1));
-
-    final Timestamp inicioTimestamp = Timestamp.fromDate(inicioLocal.toUtc());
-
-    final Timestamp finTimestamp = Timestamp.fromDate(finLocal.toUtc());
+    final int inicioUnix = inicioLocal.millisecondsSinceEpoch ~/ 1000;
+    final int finUnix = finLocal.millisecondsSinceEpoch ~/ 1000;
 
     return _firestore
         .collection("piezasCajas")
-        .where("fecha", isGreaterThanOrEqualTo: inicioTimestamp)
-        .where("fecha", isLessThan: finTimestamp)
+        .where("fecha", isGreaterThanOrEqualTo: inicioUnix)
+        .where("fecha", isLessThan: finUnix)
         .snapshots()
         .map((snapshot) {
           int neirabot = 0;
@@ -37,23 +36,19 @@ class PiezasCajasData {
         });
   }
 
+  // CONSULTA POR FECHA (reportes)
   Future<Map<String, int>> obtenerCantidadRobotsPorFecha(DateTime fecha) async {
-    /// 📅 Inicio del día local
     final DateTime inicioLocal = DateTime(fecha.year, fecha.month, fecha.day);
 
-    /// 📅 Fin del día local
     final DateTime finLocal = inicioLocal.add(const Duration(days: 1));
 
-    /// 🔄 Convertir a UTC
-    final Timestamp inicioTimestamp = Timestamp.fromDate(inicioLocal.toUtc());
+    final int inicioUnix = inicioLocal.millisecondsSinceEpoch ~/ 1000;
+    final int finUnix = finLocal.millisecondsSinceEpoch ~/ 1000;
 
-    final Timestamp finTimestamp = Timestamp.fromDate(finLocal.toUtc());
-
-    /// 🔥 Query por rango de fecha
     final query = await _firestore
         .collection("piezasCajas")
-        .where("fecha", isGreaterThanOrEqualTo: inicioTimestamp)
-        .where("fecha", isLessThan: finTimestamp)
+        .where("fecha", isGreaterThanOrEqualTo: inicioUnix)
+        .where("fecha", isLessThan: finUnix)
         .get();
 
     int neirabot = 0;
